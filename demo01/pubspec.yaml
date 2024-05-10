@@ -47,6 +47,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
   amap_flutter_location: ^3.0.0
+  amap_flutter_map: ^3.0.0
   permission_handler: ^11.3.1
 
 # For information on the generic Dart part of this file, see the
