@@ -28,17 +28,6 @@ class _PageAppState extends State<PageApp> {
     return "this is data";
   }
 
-  Stream<int> loadStreamData(){
-    return Stream.periodic(const Duration(seconds:1),(_)=>42);
-  }
-
-  @override
-  void initState(){
-    loadStreamData().listen((event) {
-      print(event);
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +37,20 @@ class _PageAppState extends State<PageApp> {
         child: Column(
           children: [
             Container(
-              child: const Text("stream流"),
+              child: FutureBuilder(
+                future: loadData(),
+                builder:(context,snapshot){
+                  if(snapshot.connectionState == ConnectionState.done){
+                    if(snapshot.hasError){
+                      return Text("错误： ${snapshot.error}");
+                    }else{
+                      return Text("成功: ${snapshot.data}");
+                    }
+                  }else{
+                    return Text("加载中。。。");
+                  }
+                }
+              ),
             )
           ],
         ),
