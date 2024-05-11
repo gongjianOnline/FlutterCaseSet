@@ -1,125 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
 
-void main() {
-  runApp(const MyApp());
+
+void main(){
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: PageApp(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class PageApp extends StatefulWidget {
+  const PageApp({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<PageApp> createState() => _PageAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _PageAppState extends State<PageApp> {
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final LocalAuthentication auth = LocalAuthentication();
+  
+  // @override
+  // Future<void> initState() async {
+  //   super.initState();
+  //   bool? _canCheckBiometrics  = await auth.canCheckBiometrics;
+  //   print("是否支持生物认证 ${_canCheckBiometrics}");
+  // }
+
+
+
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+      appBar: AppBar(title:const Text("flutter生物认证")),
+      body: Container(
+        child:Column(
+          children: [
+            ElevatedButton(onPressed:()async{
+              bool? canCheckBiometrics  = await auth.canCheckBiometrics;
+              print("是否支持生物认证 ${canCheckBiometrics}");
+            },
+            child: const Text("生物认证")),
+            ElevatedButton(onPressed:()async{
+              List<BiometricType> listData  = await auth.getAvailableBiometrics();
+              print("打印生物列表 ${listData}");
+            },
+            child: const Text("打印生物列表")),
+            ElevatedButton(onPressed:()async{
+              /**启动指纹认证 */
+              final bool didAuthenticate = await auth.authenticate(
+                localizedReason: '指纹验证',
+                authMessages:const <AuthMessages>[
+                  /**字段国际化 */
+                  AndroidAuthMessages(
+                    signInTitle: '指纹认证模块', /**图标大小：在对话框中显示为标题的消息，指示用户 */
+                    biometricHint:"请将手指放到识别器内", /*提示消息，建议用户如何使用生物特征进行身份验证。*/
+                    biometricNotRecognized:"指纹不匹配", /**消息，让用户知道身份验证失败。 */
+                    biometricRequiredTitle:"尚未在其设备上设置生物特征验证", /**图标大小：在对话框中显示为标题的消息，指示用户 */
+                    biometricSuccess:"身份验证成功",/**消息，让用户知道身份验证已成功。 */
+                    cancelButton: '取消', /**显示在按钮上的消息，用户可以单击该按钮离开*/
+                    deviceCredentialsRequiredTitle:"在对话框中显示未标题信息", /**在对话框中显示为标题的消息，指示用户 */
+                    deviceCredentialsSetupDescription:"设置", /**建议用户转到设置和配置的消息 */
+                    goToSettingsButton:"进入设置",/**按钮上显示的消息，用户可以单击该按钮进入设置页面 */
+                    goToSettingsDescription:"请转到系统设置",/**建议用户转到设置和配置的消息 */
+                  ),
+                ]
+
+              );
+              print("识别结果 ${didAuthenticate}");
+            },
+            child: const Text("指纹识别"))
           ],
-        ),
+          
+        )
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
+
+
