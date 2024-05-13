@@ -1,125 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:jpush_flutter/jpush_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+void main(){
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: PageApp(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class PageApp extends StatefulWidget {
+  const PageApp({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<PageApp> createState() => _PageAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+class _PageAppState extends State<PageApp> {
+  @override
+  void initState(){
+    super.initState();
+    initJpush();
   }
 
+  //监听极光推送 (自定义的方法)
+  //https://github.com/jpush/jpush-flutter-plugin/blob/master/documents/APIs.md
+  initJpush() async {
+    JPush jpush = new JPush();
+
+    var fireDate = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch + 3000);
+    var localNotification = LocalNotification(
+      id: 234,
+      title: 'notification title',
+      buildId: 1,
+      content: 'notification content',
+      fireTime: fireDate,
+      subtitle: 'notification subtitle', // 该参数只有在 iOS 有效
+      badge: 5, // 该参数只有在 iOS 有效
+    );
+    jpush.sendLocalNotification(localNotification).then((res) {});
+
+    //获取注册的id
+    jpush.getRegistrationID().then((rid) {
+      print("获取注册的id:$rid");
+    });
+    //初始化
+    jpush.setup(
+      appKey: "93ba8df603b6f530b2310c69",
+      channel: "theChannel",
+      production: false,
+      debug: true, // 设置是否打印 debug 日志
+    );
+
+    //设置别名  实现指定用户推送
+    // jpush.setAlias("jg123").then((map) {
+    //   print("设置别名成功");
+    // });
+
+    try {
+      //监听消息通知
+      jpush.addEventHandler(
+        // 接收通知回调方法。
+        onReceiveNotification: (Map<String, dynamic> message) async {
+          print("flutter onReceiveNotification: $message");
+        },
+        // 点击通知回调方法。
+        onOpenNotification: (Map<String, dynamic> message) async {
+          print("flutter onOpenNotification: $message");
+        },
+        // 接收自定义消息回调方法。
+        onReceiveMessage: (Map<String, dynamic> message) async {
+          print("flutter onReceiveMessage: $message");
+        },
+      );
+    } catch (e) {
+      print('极光sdk配置异常');
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      appBar: AppBar(title:Text("flutter推送")),
     );
   }
 }
