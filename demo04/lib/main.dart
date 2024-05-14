@@ -60,9 +60,9 @@ class _PageAppState extends State<PageApp> {
     );
 
     //设置别名  实现指定用户推送
-    // jpush.setAlias("jg123").then((map) {
-    //   print("设置别名成功");
-    // });
+    jpush.setAlias("jg123").then((map) {
+      print("设置别名成功");
+    });
 
     try {
       //监听消息通知
