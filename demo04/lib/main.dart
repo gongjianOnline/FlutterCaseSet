@@ -38,9 +38,9 @@ class _PageAppState extends State<PageApp> {
     var fireDate = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch + 3000);
     var localNotification = LocalNotification(
       id: 234,
-      title: 'notification title',
+      title: '本地应用推送',
       buildId: 1,
-      content: 'notification content',
+      content: '定时任务本地消息推送',
       fireTime: fireDate,
       subtitle: 'notification subtitle', // 该参数只有在 iOS 有效
       badge: 5, // 该参数只有在 iOS 有效
